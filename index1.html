@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributor Demand Entry</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a polished look, complementing Tailwind */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font for clean typography */
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 32px;
+            border-radius: 16px; /* Softly rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            width: 100%;
+            max-width: 700px; /* Increased max-width for more fields */
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin-bottom: 20px; /* Spacing between form fields */
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600; /* Semi-bold labels */
+            color: #334155; /* Darker text for labels */
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"], /* Added number input type */
+        select, /* Added select input type */
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1; /* Light gray border */
+            border-radius: 8px; /* Rounded input fields */
+            font-size: 1rem;
+            color: #475569; /* Darker text for input values */
+            box-sizing: border-box;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transitions for focus */
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none; /* Remove default outline */
+            border-color: #6366f1; /* Indigo focus border */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Light indigo shadow on focus */
+        }
+        textarea {
+            resize: vertical; /* Allow vertical resizing of textarea */
+            min-height: 100px; /* Minimum height for textarea */
+        }
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            background-color: #6366f1; /* Vibrant indigo button */
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem; /* Larger font size for button text */
+            font-weight: 700; /* Bold button text */
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease; /* Smooth hover and click effects */
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); /* Button shadow */
+        }
+        button:hover {
+            background-color: #4f46e5; /* Darker indigo on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        button:active {
+            transform: translateY(0); /* Return to original position on click */
+            box-shadow: 0 2px 5px rgba(99, 102, 241, 0.4); /* Smaller shadow on click */
+        }
+        .response-message { /* Changed ID to class for reusability */
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .success {
+            background-color: #d1fae5; /* Light green for success */
+            color: #065f46; /* Dark green text */
+            border: 1px solid #34d399;
+        }
+        .error {
+            background-color: #fee2e2; /* Light red for error */
+            color: #991b1b; /* Dark red text */
+            border: 1px solid #ef4444;
+        }
+        .hidden {
+            display: none; /* Utility class to hide elements */
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsive grid for products */
+            gap: 16px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8fafc; /* Lighter background for product section */
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .product-item {
+            background-color: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .product-item label {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #475569;
+            font-weight: 500;
+        }
+        .product-item input[type="number"] {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8" id="panelTitle">Distributor Login</h2>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <input type="hidden" name="action" value="login">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Mobile Number:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your mobile number" required>
+            </div>
+            <button type="submit" id="loginButton">Login</button>
+            <div id="loginResponseMessage" class="response-message hidden"></div>
+        </form>
+
+        <!-- Demand Entry Form (Initially Hidden) -->
+        <form id="demandForm" class="hidden">
+            <input type="hidden" name="action" value="submit_demand">
+            <h3 class="text-2xl font-semibold text-gray-700 mb-6 text-center" id="welcomeMessage"></h3>
+            <h4 class="text-xl font-semibold text-gray-600 mb-4 text-center" id="distributorRoute"></h4>
+
+            <h4 class="text-xl font-semibold text-gray-600 mb-4 mt-6">Product Demand Quantities:</h4>
+            <div class="product-grid">
+                <!-- Product input fields will be dynamically generated here by JavaScript after fetching from sheet -->
+                <p class="text-gray-500 text-center" id="loadingProductsDemand">Loading products...</p>
+            </div>
+
+            <button type="submit" id="submitDemandButton" class="mt-8">Submit Demand</button>
+            <div id="demandResponseMessage" class="response-message hidden"></div>
+        </form>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' with your deployed Google Apps Script Web App URL.
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztdcMKcONTkYflCyGZGw2JQ3R7XOSlVWGlYo8ZuFvjQCAUeq6_TSVUtfEY5b4B3FWV/exec';
+
+        const loginForm = document.getElementById('loginForm');
+        const demandForm = document.getElementById('demandForm');
+        const panelTitle = document.getElementById('panelTitle');
+        const loginButton = document.getElementById('loginButton');
+        const submitDemandButton = document.getElementById('submitDemandButton');
+        const loginResponseMessage = document.getElementById('loginResponseMessage');
+        const demandResponseMessage = document.getElementById('demandResponseMessage');
+        const productGrid = document.querySelector('.product-grid');
+        const loadingProductsDemand = document.getElementById('loadingProductsDemand');
+        const welcomeMessage = document.getElementById('welcomeMessage'); // New element for welcome message
+        const distributorRoute = document.getElementById('distributorRoute'); // New element for distributor route
+
+        let currentProducts = []; // Local array to hold products fetched from the Products sheet
+        let loggedInDistributorName = ''; // Stores distributor name after login
+        let loggedInDistributorRoute = ''; // Stores distributor route after login
+
+        /**
+         * Generic function to handle form submissions (login or demand submission).
+         * @param {HTMLFormElement} formElement - The form element being submitted.
+         * @param {HTMLButtonElement} submitButton - The button that triggered the submission.
+         * @param {HTMLElement} responseMessageElement - The element to display response messages.
+         */
+        async function handleSubmission(formElement, submitButton, responseMessageElement) {
+            submitButton.disabled = true;
+            const originalButtonText = submitButton.textContent;
+            submitButton.textContent = 'Processing...';
+            responseMessageElement.classList.add('hidden'); // Hide current message
+
+            const formData = new FormData(formElement);
+
+            // If submitting demand, add the logged-in distributor's name and route
+            if (formElement.id === 'demandForm') {
+                formData.append('Distributor Name', loggedInDistributorName);
+                formData.append('Route', loggedInDistributorRoute);
+            }
+
+            // --- Debugging: Log FormData content ---
+            console.log('Sending FormData:');
+            for (let pair of formData.entries()) {
+                console.log(pair[0]+ ': ' + pair[1]); 
+            }
+            // --- End Debugging ---
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.result === 'success') {
+                        // Handle login success
+                        if (formElement.id === 'loginForm') {
+                            loginResponseMessage.classList.remove('hidden', 'error');
+                            loginResponseMessage.classList.add('success');
+                            loginResponseMessage.textContent = result.message || 'Login successful!';
+
+                            // Store distributor info from login response
+                            loggedInDistributorName = result.distributorName;
+                            loggedInDistributorRoute = result.route;
+
+                            // Update UI for welcome message and route
+                            welcomeMessage.textContent = `Welcome, ${loggedInDistributorName}!`;
+                            distributorRoute.textContent = `Your Route: ${loggedInDistributorRoute}`;
+
+                            loginForm.classList.add('hidden');
+                            demandForm.classList.remove('hidden');
+                            panelTitle.textContent = 'Enter Product Demand';
+                            fetchProductsForDemand(); // Fetch products dynamically after successful login
+                        } 
+                        // Handle demand submission success
+                        else if (formElement.id === 'demandForm') {
+                            // Calculate next day's date
+                            const today = new Date();
+                            const nextDay = new Date(today);
+                            nextDay.setDate(today.getDate() + 1);
+                            const nextDayDateString = nextDay.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+
+                            // Set the message on the loginResponseMessage element
+                            loginResponseMessage.textContent = `Demand updated for ${nextDayDateString}.`;
+                            loginResponseMessage.classList.remove('hidden', 'error');
+                            loginResponseMessage.classList.add('success');
+                            
+                            // Log out: Hide demand form, show login form
+                            demandForm.classList.add('hidden');
+                            loginForm.classList.remove('hidden');
+                            panelTitle.textContent = 'Distributor Login';
+                            // Clear login fields
+                            document.getElementById('username').value = '';
+                            document.getElementById('password').value = '';
+                            // Clear welcome messages
+                            welcomeMessage.textContent = '';
+                            distributorRoute.textContent = '';
+                            // Ensure loginResponseMessage is visible
+                            loginResponseMessage.classList.remove('hidden');
+                        }
+                        return true; // Indicate success
+                    } else {
+                        throw new Error(result.error || 'An unknown error occurred on the server.');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${responseText}`);
+                }
+            } catch (error) {
+                console.error('Error during submission:', error);
+                responseMessageElement.classList.remove('hidden', 'success');
+                responseMessageElement.classList.add('error');
+
+                let errorMessage = 'An unexpected error occurred.';
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                } else if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error && typeof error === 'object' && error.message) {
+                    errorMessage = error.message;
+                } else {
+                    try {
+                        errorMessage = JSON.stringify(error);
+                    } catch (e) {
+                        errorMessage = 'Could not parse error details.';
+                    }
+                }
+                responseMessageElement.textContent = `Failed: ${errorMessage}. Please try again.`;
+                return false; // Indicate failure
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
+        }
+
+        /**
+         * Fetches the current product list from the Google Sheet via Apps Script.
+         */
+        async function fetchProductsForDemand() {
+            loadingProductsDemand.classList.remove('hidden');
+            productGrid.innerHTML = ''; // Clear previous inputs
+
+            // --- Debugging: Log the URL being requested ---
+            const requestUrl = `${SCRIPT_URL}?action=get_products`;
+            console.log('Fetching products from URL:', requestUrl);
+            // --- End Debugging ---
+
+            try {
+                const response = await fetch(requestUrl, {
+                    method: 'GET' // Use GET method for fetching data
+                });
+
+                // --- Debugging: Log the raw response status and text ---
+                console.log('Response status:', response.status);
+                const responseText = await response.text();
+                console.log('Raw response text:', responseText);
+                // --- End Debugging ---
+
+                if (response.ok) {
+                    const result = JSON.parse(responseText); // Parse the text as JSON
+                    if (result.result === 'success' && Array.isArray(result.products)) {
+                        currentProducts = result.products; // Update local products array
+                        renderProductDemandInputs(); // Render the fetched products as demand inputs
+                    } else {
+                        throw new Error(result.error || 'Failed to fetch products: Invalid response format or no products returned.');
+                    }
+                } else {
+                    throw new Error(`Server error fetching products: ${response.status} - ${responseText}`);
+                }
+            } catch (error) {
+                console.error('Error fetching products for demand:', error);
+                productGrid.innerHTML = `<p class="text-red-600">Error loading products: ${error.message}</p>`;
+            } finally {
+                loadingProductsDemand.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Renders the product input fields for demand collection based on the dynamically fetched 'currentProducts' array.
+         */
+        function renderProductDemandInputs() {
+            productGrid.innerHTML = '';
+            if (currentProducts.length === 0) {
+                productGrid.innerHTML = '<p class="text-gray-500 text-center">No products available. Please contact admin to add products.</p>';
+                return;
+            }
+            currentProducts.forEach((product, index) => {
+                const productId = `demand-product-${index}`;
+                // Create a unique name for each input field using "Product Name - Pack Size" format
+                const inputName = `${product.name} - ${product.pack}`;
+
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.innerHTML = `
+                    <label for="${productId}" class="block text-sm font-medium text-gray-700">${product.name} (${product.pack}):</label>
+                    <input type="number" id="${productId}" name="${inputName}" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                `;
+                productGrid.appendChild(productItem);
+            });
+        }
+
+        // --- Event Listeners ---
+
+        // Login Form Submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const success = await handleSubmission(loginForm, loginButton, loginResponseMessage);
+            // The rest of the UI update (showing demandForm, welcome message) is handled inside handleSubmission
+        });
+
+        // Demand Form Submission
+        demandForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handleSubmission(demandForm, submitDemandButton, demandResponseMessage);
+        });
+    </script>
+</body>
+</html>
