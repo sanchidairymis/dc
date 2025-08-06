@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributor Demand Entry</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for clean typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles for the body, using Inter font and light background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Sticky Navbar styles */
+        .navbar {
+            width: 100%;
+            background-color: #4f46e5; /* Deep indigo for a strong header */
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ffffff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .navbar-logo {
+            height: 32px;
+            width: auto;
+            border-radius: 4px;
+        }
+        .navbar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .navbar-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .navbar-button {
+            background-color: #6366f1; /* Lighter indigo for navbar buttons */
+            color: #ffffff;
+            padding: 0.4rem 0.9rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .navbar-button:hover {
+            background-color: #7b7ffc;
+        }
+
+        /* Main content container - acts like a card */
+        .container {
+            background-color: #ffffff;
+            padding: 32px;
+            border-radius: 16px; /* Softly rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            width: 100%;
+            max-width: 700px;
+            box-sizing: border-box;
+            margin-top: 80px; /* Space for the fixed navbar */
+            margin-bottom: 20px;
+        }
+
+        /* Form group spacing */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Labels for form fields */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        /* Input field styling (text, email, password, number, select, textarea) */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #475569;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Base button styling */
+        button {
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.15s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        /* Primary button styling (for Login, Submit Demand, Confirm Demand, OK) */
+        .btn-primary {
+            width: 100%;
+            padding: 16px 24px;
+            background-color: #22c55e; /* Vibrant Green */
+            color: #ffffff;
+            border-radius: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            box-shadow: 0 6px 15px rgba(34, 197, 94, 0.4);
+            letter-spacing: 0.05em;
+        }
+        .btn-primary:hover {
+            background-color: #16a34a; /* Darker green on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.5);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(34, 197, 94, 0.4);
+            background-color: #4ade80; /* Lighter green on active */
+        }
+
+        /* Secondary button styling (for Modify Demand, Close Contact/Help) */
+        .btn-secondary {
+            background-color: #6b7280; /* Gray */
+            color: #ffffff;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: none; /* Override uppercase for these buttons */
+            box-shadow: 0 4px 10px rgba(107, 114, 128, 0.3);
+            width: auto; /* Allow natural width */
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(107, 114, 128, 0.4);
+        }
+        .btn-secondary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(107, 114, 128, 0.4);
+            background-color: #6b7280;
+        }
+
+        /* Response messages */
+        .response-message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .hidden {
+            display: none;
+        }
+
+        /* Product grid layout */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .product-item {
+            background-color: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .product-item label {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #475569;
+            font-weight: 500;
+        }
+        .product-item input[type="number"] {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Contact and Help sections (card-like appearance) */
+        .contact-section, .help-section {
+            background-color: #ffffff;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            box-sizing: border-box;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Modal overlay and content */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .demand-summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            align-items: center;
+        }
+        .highlight-zero {
+            background-color: #fffbe6; /* Light yellow */
+            border: 1px solid #fcd34d; /* Yellow border */
+            color: #b45309; /* Darker yellow text */
+        }
+        .highlight-positive {
+            background-color: #dcfce7; /* Light green */
+            border: 1px solid #86efac; /* Green border */
+            color: #166534; /* Darker green text */
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        /* Success modal specific styles */
+        .success-modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .success-modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #22c55e;
+            margin-bottom: 15px;
+        }
+        .success-modal-message {
+            font-size: 1.1rem;
+            color: #334155;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <!-- Placeholder for your logo -->
+            <!-- Replace this with your actual logo URL, e.g., "https://yourcompany.com/logo.png" -->
+            <img src="../dc/download.png" class="navbar-logo">
+            <div class="navbar-title">Distributor Panel</div>
+        </div>
+        <div class="navbar-buttons">
+            <button id="helpButton" class="navbar-button">Help</button>
+            <button id="contactUsButton" class="navbar-button">Contact Us</button>
+        </div>
+    </nav>
+
+    <div class="container" id="mainContent">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8" id="panelTitle">Distributor Login</h2>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <input type="hidden" name="action" value="login">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Mobile Number:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your mobile number" required>
+            </div>
+            <button type="submit" id="loginButton" class="btn-primary">Login</button>
+            <div id="loginResponseMessage" class="response-message hidden"></div>
+        </form>
+
+        <!-- Demand Entry Form (Initially Hidden) -->
+        <form id="demandForm">
+            <input type="hidden" name="action" value="submit_demand">
+            <h3 class="text-2xl font-semibold text-gray-700 mb-6 text-center" id="welcomeMessage"></h3>
+            <h4 class="text-xl font-semibold text-gray-600 mb-4 text-center" id="distributorRoute"></h4>
+
+            <h4 class="text-xl font-semibold text-gray-600 mb-4 mt-6">Product Demand Quantities:</h4>
+            <div class="product-grid">
+                <!-- Product input fields will be dynamically generated here by JavaScript after fetching from sheet -->
+                <p class="text-gray-500 text-center" id="loadingProductsDemand">Loading products...</p>
+            </div>
+
+            <button type="submit" id="submitDemandButton" class="btn-primary mt-8">Submit Demand</button>
+            <div id="demandResponseMessage" class="response-message hidden"></div>
+        </form>
+    </div>
+
+    <!-- Contact Us Section (Initially Hidden) -->
+    <div id="contactSection" class="contact-section hidden">
+        <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">Contact Us</h3>
+        <p class="text-gray-700 text-center mb-4">If you have any questions or need assistance, please reach out to us:</p>
+        <div class="text-center">
+            <p class="text-lg font-semibold text-indigo-700">Email: support@example.com</p>
+            <p class="text-lg font-semibold text-indigo-700">Phone: +91 98765 43210</p>
+            <p class="text-gray-600 mt-2">Our team is available Monday to Friday, 9 AM - 5 PM IST.</p>
+        </div>
+        <button id="closeContactButton" class="btn-secondary mt-8">Close</button>
+    </div>
+
+    <!-- Help Section (Initially Hidden) -->
+    <div id="helpSection" class="help-section hidden">
+        <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">Help & Support</h3>
+        <p class="text-gray-700 text-center mb-4">Find answers to common questions or get guidance on using the panel.</p>
+        <div class="text-left p-4 bg-gray-50 rounded-lg">
+            <h5 class="font-semibold text-gray-800 mb-2">How to Submit Demand:</h5>
+            <ul class="list-disc list-inside text-gray-600 mb-4">
+                <li>Log in with your Username and Mobile Number.</li>
+                <li>Enter the quantities for the products you need.</li>
+                <li>Click 'Submit Demand'. Your demand will be recorded for the next day.</li>
+            </ul>
+            <h5 class="font-semibold text-gray-800 mb-2">Troubleshooting Login:</h5>
+            <ul class="list-disc list-inside text-gray-600">
+                <li>Ensure your Username and Mobile Number are entered exactly as provided by administration.</li>
+                <li>Contact support if you continue to face issues.</li>
+            </ul>
+        </div>
+        <button id="closeHelpButton" class="btn-secondary mt-8">Close</button>
+    </div>
+
+    <!-- Confirmation Modal (Initially Hidden) -->
+    <div id="confirmationModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">Confirm Your Demand</div>
+            <p class="text-gray-700 text-center mb-4">Please review your order before confirming. Zero quantity items are highlighted in yellow.</p>
+            <div id="demandSummary" class="mb-6">
+                <!-- Demand items will be dynamically inserted here -->
+            </div>
+            <div class="modal-buttons">
+                <button id="confirmDemandButton" class="btn-primary">Confirm Demand</button>
+                <button id="modifyDemandButton" class="btn-secondary">Modify Demand</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message Modal (New) -->
+    <div id="successModal" class="modal-overlay hidden">
+        <div class="success-modal-content">
+            <div class="success-modal-header">Success!</div>
+            <p id="successMessageText" class="success-modal-message"></p>
+            <button id="closeSuccessModalButton" class="btn-primary">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' with your deployed Google Apps Script Web App URL.
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_vUdn3LY8kKtRsU-QFvJw_Wz5Tp1EfXMkfH5Q9yiMwQxhBgJ4cfxuhoBkrkzRYfn_/exec';
+
+        const loginForm = document.getElementById('loginForm');
+        const demandForm = document.getElementById('demandForm');
+        const panelTitle = document.getElementById('panelTitle');
+        const loginButton = document.getElementById('loginButton');
+        const submitDemandButton = document.getElementById('submitDemandButton');
+        const loginResponseMessage = document.getElementById('loginResponseMessage');
+        const demandResponseMessage = document.getElementById('demandResponseMessage');
+        const productGrid = document.querySelector('.product-grid');
+        const loadingProductsDemand = document.getElementById('loadingProductsDemand');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const distributorRoute = document.getElementById('distributorRoute');
+
+        const contactUsButton = document.getElementById('contactUsButton');
+        const contactSection = document.getElementById('contactSection');
+        const closeContactButton = document.getElementById('closeContactButton');
+        const helpButton = document.getElementById('helpButton');
+        const helpSection = document.getElementById('helpSection');
+        const closeHelpButton = document.getElementById('closeHelpButton');
+        const mainContent = document.getElementById('mainContent');
+
+        // Modal elements
+        const confirmationModal = document.getElementById('confirmationModal');
+        const demandSummary = document.getElementById('demandSummary');
+        const confirmDemandButton = document.getElementById('confirmDemandButton');
+        const modifyDemandButton = document.getElementById('modifyDemandButton');
+
+        // New success modal elements
+        const successModal = document.getElementById('successModal');
+        const successMessageText = document.getElementById('successMessageText');
+        const closeSuccessModalButton = document.getElementById('closeSuccessModalButton');
+
+
+        let currentProducts = [];
+        let loggedInDistributorName = '';
+        let loggedInDistributorRoute = '';
+        let currentDemandFormData = null; // To store FormData for confirmation
+
+        // Initially hide the demand form until login
+        demandForm.classList.add('hidden');
+
+        /**
+         * Hides all main content sections (login, demand, contact, help)
+         * and shows only the specified section.
+         * @param {HTMLElement} sectionToShow - The section to make visible.
+         */
+        function showOnlySection(sectionToShow) {
+            mainContent.classList.add('hidden');
+            contactSection.classList.add('hidden');
+            helpSection.classList.add('hidden');
+            confirmationModal.classList.add('hidden'); // Ensure confirmation modal is hidden
+            successModal.classList.add('hidden'); // Ensure success modal is hidden
+
+            if (sectionToShow === mainContent) {
+                mainContent.classList.remove('hidden');
+            } else if (sectionToShow === contactSection) {
+                contactSection.classList.remove('hidden');
+            } else if (sectionToShow === helpSection) {
+                helpSection.classList.remove('hidden');
+            } else if (sectionToShow === successModal) { // New case for success modal
+                successModal.classList.remove('hidden');
+            }
+            // Ensure response messages are hidden when switching sections
+            loginResponseMessage.classList.add('hidden');
+            demandResponseMessage.classList.add('hidden');
+        }
+
+        /**
+         * Displays the confirmation modal with current demand details.
+         */
+        function showConfirmationModal() {
+            demandSummary.innerHTML = ''; // Clear previous summary
+            
+            // Get current demand quantities from the form
+            const formData = new FormData(demandForm);
+            currentDemandFormData = formData; // Store for later submission
+
+            let hasDemand = false;
+            for (let pair of formData.entries()) {
+                // Check if it's a product quantity input
+                if (pair[0].includes(' - ') && !['Distributor Name', 'Route', 'action'].includes(pair[0])) {
+                    const productName = pair[0];
+                    const quantity = parseInt(pair[1]);
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = `demand-summary-item ${quantity === 0 ? 'highlight-zero' : 'highlight-positive'}`;
+                    itemDiv.innerHTML = `<span>${productName}</span><span>${quantity} units</span>`;
+                    demandSummary.appendChild(itemDiv);
+
+                    if (quantity > 0) {
+                        hasDemand = true;
+                    }
+                }
+            }
+
+            if (!hasDemand && demandSummary.children.length === 0) {
+                // If no products were displayed (e.g., no products fetched yet or all quantities are 0 and filtered out)
+                const noItemsDiv = document.createElement('div');
+                noItemsDiv.className = 'text-center text-gray-500 py-4';
+                noItemsDiv.textContent = 'No demand entered or products not loaded.';
+                demandSummary.appendChild(noItemsDiv);
+            }
+
+            // Hide main content and show modal
+            mainContent.classList.add('hidden');
+            confirmationModal.classList.remove('hidden');
+        }
+
+        /**
+         * Handles the actual submission of demand after confirmation.
+         * This function is called by the confirm button in the modal.
+         */
+        async function submitConfirmedDemand() {
+            if (!currentDemandFormData) {
+                console.error("No demand data to submit.");
+                return;
+            }
+
+            // Temporarily hide modal and show processing message on main content
+            confirmationModal.classList.add('hidden');
+            mainContent.classList.remove('hidden'); // Show main content area
+            loginResponseMessage.classList.add('hidden'); // Hide any previous login messages
+            demandResponseMessage.classList.remove('hidden', 'success', 'error');
+            demandResponseMessage.classList.add('text-gray-600');
+            demandResponseMessage.textContent = 'Submitting demand...';
+
+            await handleSubmission(demandForm, submitDemandButton, demandResponseMessage);
+        }
+
+        /**
+         * Generic function to handle form submissions (login or demand submission).
+         * @param {HTMLFormElement} formElement - The form element being submitted.
+         * @param {HTMLButtonElement} submitButton - The button that triggered the submission.
+         * @param {HTMLElement} responseMessageElement - The element to display response messages.
+         */
+        async function handleSubmission(formElement, submitButton, responseMessageElement) {
+            submitButton.disabled = true;
+            const originalButtonText = submitButton.textContent;
+            submitButton.textContent = 'Processing...';
+            responseMessageElement.classList.add('hidden');
+            
+            contactSection.classList.add('hidden');
+            helpSection.classList.add('hidden');
+
+            // Use currentDemandFormData if submitting demand, otherwise use formElement's FormData
+            const formDataToSubmit = formElement.id === 'demandForm' ? currentDemandFormData : new FormData(formElement);
+
+            // Add distributor name and route to the formDataToSubmit if it's a demand form submission
+            if (formElement.id === 'demandForm') {
+                formDataToSubmit.append('Distributor Name', loggedInDistributorName);
+                formDataToSubmit.append('Route', loggedInDistributorRoute);
+            }
+
+            console.log('Sending FormData:');
+            for (let pair of formDataToSubmit.entries()) {
+                console.log(pair[0]+ ': ' + pair[1]); 
+            }
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formDataToSubmit,
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.result === 'success') {
+                        if (formElement.id === 'loginForm') {
+                            loginResponseMessage.classList.remove('hidden', 'error');
+                            loginResponseMessage.classList.add('success');
+                            loginResponseMessage.textContent = result.message || 'Login successful!';
+
+                            loggedInDistributorName = result.distributorName;
+                            loggedInDistributorRoute = result.route;
+
+                            welcomeMessage.textContent = `Welcome, ${loggedInDistributorName}!`;
+                            distributorRoute.textContent = `Your Route: ${loggedInDistributorRoute}`;
+
+                            loginForm.classList.add('hidden');
+                            demandForm.classList.remove('hidden');
+                            panelTitle.textContent = 'Enter Product Demand';
+                            fetchProductsForDemand();
+                            showOnlySection(mainContent);
+                        } 
+                        else if (formElement.id === 'demandForm') {
+                            const today = new Date();
+                            const nextDay = new Date(today);
+                            nextDay.setDate(today.getDate() + 1);
+                            const nextDayDateString = nextDay.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+
+                            // Display success modal
+                            successMessageText.textContent = `Demand successfully submitted for ${nextDayDateString}.`;
+                            showOnlySection(successModal); 
+                            
+                            // Log out: Hide demand form, show login form (after success modal is closed)
+                            demandForm.classList.add('hidden');
+                            loginForm.classList.remove('hidden');
+                            panelTitle.textContent = 'Distributor Login';
+                            // Clear login fields
+                            document.getElementById('username').value = '';
+                            document.getElementById('password').value = '';
+                            // Clear welcome messages
+                            welcomeMessage.textContent = '';
+                            distributorRoute.textContent = '';
+                            // Ensure loginResponseMessage is hidden when success modal is shown
+                            loginResponseMessage.classList.add('hidden'); 
+                        }
+                        return true;
+                    } else {
+                        // Handle errors from Apps Script, including duplicate entry error
+                        throw new Error(result.error || 'An unknown error occurred on the server.');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error during submission:', error);
+                responseMessageElement.classList.remove('hidden', 'success');
+                responseMessageElement.classList.add('error');
+
+                let errorMessage = 'An unexpected error occurred.';
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                } else if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error && typeof error === 'object' && error.message) {
+                    errorMessage = error.message;
+                } else {
+                    try {
+                        errorMessage = JSON.stringify(error);
+                    } catch (e) {
+                        errorMessage = 'Could not parse error details.';
+                    }
+                }
+                // Display error in demandResponseMessage for demand submission errors
+                // For login errors, loginResponseMessage will be used as before.
+                if (formElement.id === 'demandForm') {
+                    demandResponseMessage.textContent = `Failed: ${errorMessage}. Please try again.`;
+                    demandResponseMessage.classList.remove('hidden');
+                    // If there's an error on demand submission, stay on the demand form
+                    mainContent.classList.remove('hidden');
+                    confirmationModal.classList.add('hidden');
+                } else {
+                    loginResponseMessage.textContent = `Failed: ${errorMessage}. Please try again.`;
+                    loginResponseMessage.classList.remove('hidden');
+                }
+                return false;
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
+        }
+
+        /**
+         * Fetches the current product list from the Google Sheet via Apps Script.
+         */
+        async function fetchProductsForDemand() {
+            loadingProductsDemand.classList.remove('hidden');
+            productGrid.innerHTML = '';
+
+            const requestUrl = `${SCRIPT_URL}?action=get_products`;
+            console.log('Fetching products from URL:', requestUrl);
+
+            try {
+                const response = await fetch(requestUrl, {
+                    method: 'GET'
+                });
+
+                console.log('Response status:', response.status);
+                const responseText = await response.text();
+                console.log('Raw response text:', responseText);
+
+                if (response.ok) {
+                    const result = JSON.parse(responseText);
+                    if (result.result === 'success' && Array.isArray(result.products)) {
+                        currentProducts = result.products;
+                        renderProductDemandInputs();
+                    } else {
+                        throw new Error(result.error || 'Failed to fetch products: Invalid response format or no products returned.');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`Server error fetching products: ${response.status} - ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error fetching products for demand:', error);
+                productGrid.innerHTML = `<p class="text-red-600">Error loading products: ${error.message}</p>`;
+            } finally {
+                loadingProductsDemand.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Renders the product input fields for demand collection based on the dynamically fetched 'currentProducts' array.
+         */
+        function renderProductDemandInputs() {
+            productGrid.innerHTML = '';
+            if (currentProducts.length === 0) {
+                productGrid.innerHTML = '<p class="text-gray-500 text-center">No products available. Please contact admin to add products.</p>';
+                return;
+            }
+            currentProducts.forEach((product, index) => {
+                const productId = `demand-product-${index}`;
+                const inputName = `${product.name} - ${product.pack}`;
+
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.innerHTML = `
+                    <label for="${productId}" class="block text-sm font-medium text-gray-700">${product.name} (${product.pack}):</label>
+                    <input type="number" id="${productId}" name="${inputName}" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                `;
+                productGrid.appendChild(productItem);
+            });
+        }
+
+        // --- Event Listeners ---
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handleSubmission(loginForm, loginButton, loginResponseMessage);
+        });
+
+        // Modified demandForm submission to show confirmation modal first
+        demandForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent direct submission
+            showConfirmationModal();
+        });
+
+        // Event listener for the "Confirm Demand" button in the modal
+        confirmDemandButton.addEventListener('click', () => {
+            submitConfirmedDemand();
+        });
+
+        // Event listener for the "Modify Demand" button in the modal
+        modifyDemandButton.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden'); // Hide modal
+            mainContent.classList.remove('hidden'); // Show main content (demand form)
+            demandResponseMessage.classList.add('hidden'); // Clear any demand response messages
+        });
+
+        // Event listener for the "OK" button in the new success modal
+        closeSuccessModalButton.addEventListener('click', () => {
+            successModal.classList.add('hidden'); // Hide success modal
+            // After closing success modal, transition back to login screen
+            showOnlySection(mainContent); // Show main content area (which will display login form)
+            // No message on login screen after successful demand submission
+            loginResponseMessage.classList.add('hidden'); 
+        });
+
+
+        contactUsButton.addEventListener('click', () => {
+            showOnlySection(contactSection);
+        });
+
+        closeContactButton.addEventListener('click', () => {
+            showOnlySection(mainContent);
+        });
+
+        helpButton.addEventListener('click', () => {
+            showOnlySection(helpSection);
+        });
+
+        closeHelpButton.addEventListener('click', () => {
+            showOnlySection(mainContent);
+        });
+    </script>
+</body>
+</html>
+
