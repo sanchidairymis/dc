@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributor Demand Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles for the body, using Inter font and light background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Sticky Navbar styles */
+        .navbar {
+            width: 100%;
+            background-color: #4f46e5; /* Deep indigo for a vibrant header */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 40;
+        }
+
+        /* Main container styling */
+        .main-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-top: 100px; /* Space for the sticky navbar */
+            margin-bottom: 2rem;
+        }
+
+        /* Form elements styling */
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db; /* Gray border */
+            transition: all 0.2s ease-in-out;
+            margin-top: 0.25rem;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #4f46e5; /* Indigo border on focus */
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+        }
+        
+        .quantity-input {
+            width: 80px; /* Fixed width for quantity inputs */
+            text-align: center;
+        }
+
+        /* Button styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* Primary indigo */
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #4338ca; /* Darker indigo on hover */
+        }
+        .btn:disabled {
+            background-color: #9ca3af; /* Gray out disabled buttons */
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb; /* Light gray */
+            color: #4b5563;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .btn-green {
+            background-color: #10b981; /* Green for success */
+            color: white;
+        }
+        .btn-red {
+            background-color: #ef4444; /* Red for errors/danger */
+            color: white;
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            max-width: 90%;
+            width: 500px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            animation: slide-in 0.3s ease-out;
+        }
+        @keyframes slide-in {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        /* New styling for the tabular demand items in the modal */
+        .demand-items-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 0.5rem;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <nav class="navbar fixed top-0 w-full z-40 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <span id="brandName" class="text-xl font-bold cursor-pointer"></span>
+                <div id="distributorInfo" class="hidden md:block">
+                    <span id="distributorNameDisplay" class="font-semibold"></span>
+                    (<span id="distributorRouteDisplay"></span>)
+                </div>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-4">
+                <div id="authenticatedNav" class="hidden flex space-x-4">
+                    <button id="todayDemandButton" class="btn text-white hover:bg-indigo-600">
+                        <span data-lang-key="nav_today_demand"></span>
+                    </button>
+                    <button id="advanceDemandButton" class="btn text-white hover:bg-indigo-600">
+                        <span data-lang-key="nav_advance_demand"></span>
+                    </button>
+                    <button id="yourOrdersButton" class="btn text-white hover:bg-indigo-600">
+                        <span data-lang-key="nav_your_orders"></span>
+                    </button>
+                    <button id="logoutButton" class="btn text-white hover:bg-indigo-600">
+                        <span data-lang-key="nav_logout"></span>
+                    </button>
+                </div>
+                <button id="contactUsButton" class="btn text-white hover:bg-indigo-600">
+                    <span data-lang-key="nav_contact"></span>
+                </button>
+                <button id="helpButton" class="btn text-white hover:bg-indigo-600">
+                    <span data-lang-key="nav_help"></span>
+                </button>
+                <button id="languageToggle" class="btn text-white hover:bg-indigo-600">
+                    <span data-lang-key="nav_language"></span>
+                </button>
+            </div>
+            
+            <div class="md:hidden">
+                <button id="mobileMenuButton" class="text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div id="mobileMenu" class="md:hidden hidden bg-indigo-700 mt-4 p-4 rounded-b-lg">
+             <div id="mobileAuthenticatedNav" class="hidden">
+                <button id="mobileTodayDemandButton" class="block w-full text-left px-4 py-2 hover:bg-indigo-600 rounded">
+                    <span data-lang-key="nav_today_demand"></span>
+                </button>
+                <button id="mobileAdvanceDemandButton" class="block w-full text-left px-4 py-2 hover:bg-indigo-600 rounded">
+                    <span data-lang-key="nav_advance_demand"></span>
+                </button>
+                <button id="mobileYourOrdersButton" class="block w-full text-left px-4 py-2 hover:bg-indigo-600 rounded">
+                    <span data-lang-key="nav_your_orders"></span>
+                </button>
+                <button id="mobileLogoutButton" class="block w-full text-left px-4 py-2 hover:bg-indigo-600 rounded">
+                    <span data-lang-key="nav_logout"></span>
+                </button>
+             </div>
+             <button id="mobileContactUsButton" class="block w-full text-left px-4 py-2 hover:bg-indigo-600 rounded">
+                <span data-lang-key="nav_contact"></span>
+            </button>
+            <button id="mobileHelpButton" class="block w-full text-left px-4 py-2 hover:bg-indigo-600 rounded">
+                <span data-lang-key="nav_help"></span>
+            </button>
+            <button id="mobileLanguageToggle" class="block w-full text-left px-4 py-2 hover:bg-indigo-600 rounded">
+                <span data-lang-key="nav_language"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div id="mainContent" class="main-container relative">
+        <section id="loginSection" class="section">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800" data-lang-key="login_header"></h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700" data-lang-key="login_username_label"></label>
+                    <input type="text" id="username" name="username" class="form-input" required>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700" data-lang-key="login_password_label"></label>
+                    <input type="password" id="password" name="password" class="form-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full" data-lang-key="login_button"></button>
+            </form>
+            <p id="loginError" class="text-red-500 text-center mt-4 hidden" data-lang-key="login_error"></p>
+        </section>
+
+        <section id="demandFormSection" class="section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">
+                <span data-lang-key="demand_header"></span>
+                <span id="currentDateDisplay" class="font-normal text-lg block mt-2"></span>
+            </h2>
+            <div id="demandFormTimeMessage" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 hidden">
+                <p data-lang-key="submission_window_closed"></p>
+            </div>
+            <form id="todayDemandForm" class="space-y-4">
+                <input type="hidden" name="demandType" value="Today">
+                <div id="productFormContainer">
+                    </div>
+                <div class="border-t border-gray-200 mt-6 pt-4 text-lg font-bold flex justify-between items-center">
+                    <span data-lang-key="total_cost_label"></span>
+                    <span id="estimatedTotalCost" class="text-indigo-600">₹0.00</span>
+                </div>
+                <button type="submit" id="todayDemandSubmitBtn" class="btn btn-primary w-full mt-6" data-lang-key="demand_submit_button"></button>
+            </form>
+            <p id="demandError" class="text-red-500 text-center mt-4 hidden"></p>
+        </section>
+
+        <section id="advanceDemandSection" class="section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800" data-lang-key="advance_demand_header"></h2>
+            <div id="advanceDemandTimeMessage" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 hidden">
+                <p data-lang-key="submission_window_closed"></p>
+            </div>
+            <form id="advancedDemandForm" class="space-y-4">
+                <input type="hidden" name="demandType" value="Advance">
+                <div>
+                    <label for="advancedDemandDate" class="block text-sm font-medium text-gray-700" data-lang-key="advance_demand_date_label"></label>
+                    <input type="date" id="advancedDemandDate" name="Demand Date" class="form-input" required>
+                </div>
+                <div id="advanceProductFormContainer">
+                    </div>
+                <div class="border-t border-gray-200 mt-6 pt-4 text-lg font-bold flex justify-between items-center">
+                    <span data-lang-key="total_cost_label"></span>
+                    <span id="advanceEstimatedTotalCost" class="text-indigo-600">₹0.00</span>
+                </div>
+                <button type="submit" id="advancedDemandSubmitBtn" class="btn btn-primary w-full mt-6" data-lang-key="advance_demand_submit_button"></button>
+            </form>
+        </section>
+
+        <section id="yourOrdersSection" class="section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800" data-lang-key="your_orders_header"></h2>
+
+            <div class="mb-4">
+                <label for="orderSearch" class="block text-sm font-medium text-gray-700">Search Orders</label>
+                <input type="text" id="orderSearch" placeholder="Search by date or product..." class="form-input mt-1">
+            </div>
+            <div id="yourOrdersContainer" class="w-full">
+                </div>
+            <p id="noOrdersMessage" class="text-center text-gray-500 mt-8 hidden" data-lang-key="no_orders_found"></p>
+        </section>
+
+        <section id="contactSection" class="section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800" data-lang-key="contact_header"></h2>
+            <p class="text-gray-600 mb-4" data-lang-key="contact_text"></p>
+            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                <li><span data-lang-key="contact_phone_label"></span>: +91-9876543210</li>
+                <li><span data-lang-key="contact_email_label"></span>: support@example.com</li>
+            </ul>
+            <button id="closeContactButton" class="btn btn-secondary mt-6" data-lang-key="contact_back"></button>
+        </section>
+
+        <section id="helpSection" class="section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800" data-lang-key="help_header"></h2>
+            <div class="prose max-w-none text-gray-700">
+                <h3 data-lang-key="help_login_title"></h3>
+                <p data-lang-key="help_login_text"></p>
+                <h3 data-lang-key="help_demand_title"></h3>
+                <p data-lang-key="help_demand_text"></p>
+            </div>
+            <button id="closeHelpButton" class="btn btn-secondary mt-6" data-lang-key="help_back"></button>
+        </section>
+    </div>
+
+    <div id="loadingModal" class="modal-overlay hidden">
+        <div class="modal-content text-center flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-4 border-indigo-500 border-opacity-50"></div>
+            <p class="mt-4 text-lg font-medium" data-lang-key="modal_loading_text"></p>
+        </div>
+    </div>
+
+    <div id="confirmationModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-4 text-center" data-lang-key="modal_confirm_title"></h3>
+            <p><span data-lang-key="modal_confirm_distributor"></span>: <span id="confirmationDistributor"></span></p>
+            
+            <div id="advancedDemandDateDisplay" class="mb-4 hidden">
+                <p><span data-lang-key="your_orders_delivery_date"></span>: <span id="confirmationDeliveryDate" class="font-semibold"></span></p>
+            </div>
+            
+            <h4 class="font-semibold mt-4 mb-2" data-lang-key="modal_confirm_demand_items"></h4>
+            <div class="border-t border-b border-gray-200 py-2">
+                <div class="demand-items-grid font-bold text-gray-600 mb-2">
+                    <span><span data-lang-key="demand_product_label"></span></span>
+                    <span class="text-center"><span data-lang-key="demand_quantity_label"></span></span>
+                    <span class="text-right"><span data-lang-key="your_orders_total_cost"></span></span>
+                </div>
+                <div id="confirmationItemsList" class="space-y-2">
+                    </div>
+            </div>
+            <div class="border-t border-gray-200 mt-4 pt-4 text-lg font-bold flex justify-between items-center">
+                <span data-lang-key="modal_confirm_total_cost"></span>
+                <span id="confirmationTotalCost" class="text-indigo-600">₹0.00</span>
+            </div>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button id="cancelSubmissionBtn" class="btn btn-secondary" data-lang-key="modal_confirm_cancel"></button>
+                <button id="confirmSubmissionBtn" class="btn btn-primary" data-lang-key="modal_confirm_submit"></button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="successModal" class="modal-overlay hidden">
+        <div class="modal-content text-center">
+            <div class="bg-green-100 p-4 rounded-full inline-block">
+                <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mt-4" data-lang-key="modal_success_title"></h3>
+            <p class="mt-2 text-gray-600" data-lang-key="modal_success_text"></p>
+             <div id="successDeliveryDate" class="mt-4 hidden">
+                <p class="text-md font-semibold text-gray-700" data-lang-key="modal_success_delivery_date"></p>
+                <p id="successDeliveryDateValue" class="text-lg font-bold text-indigo-600"></p>
+            </div>
+            <button id="closeSuccessModalBtn" class="btn btn-primary mt-6" data-lang-key="modal_success_close"></button>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal-overlay hidden">
+        <div class="modal-content text-center">
+            <div class="bg-red-100 p-4 rounded-full inline-block">
+                <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mt-4" data-lang-key="modal_error_title"></h3>
+            <p id="errorModalMessage" class="mt-2 text-gray-600"></p>
+            <button id="closeErrorModalBtn" class="btn btn-red mt-6" data-lang-key="modal_error_close"></button>
+        </div>
+    </div>
+
+    <div id="orderDetailsModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4 text-center" data-lang-key="modal_order_details_title"></h3>
+            <div class="space-y-2 mb-4">
+                <p class="text-gray-600"><span class="font-semibold" data-lang-key="your_orders_delivery_date"></span>: <span id="orderDetailsDeliveryDate" class="font-normal text-gray-800"></span></p>
+                <p class="text-gray-600"><span class="font-semibold" data-lang-key="your_orders_timestamp"></span>: <span id="orderDetailsSubmittedOn" class="font-normal text-gray-800"></span></p>
+                <p class="text-gray-600"><span class="font-semibold" data-lang-key="your_orders_demand_type"></span>: <span id="orderDetailsDemandType" class="font-normal text-gray-800"></span></p>
+            </div>
+            
+            <h4 class="font-semibold mt-4 mb-2" data-lang-key="modal_confirm_demand_items"></h4>
+            <div class="border-t border-b border-gray-200 py-2">
+                <div class="demand-items-grid font-bold text-gray-600 mb-2">
+                    <span><span data-lang-key="demand_product_label"></span></span>
+                    <span class="text-center"><span data-lang-key="demand_quantity_label"></span></span>
+                    <span class="text-right"><span data-lang-key="your_orders_total_cost"></span></span>
+                </div>
+                <div id="orderDetailsItemsList" class="space-y-2">
+                    </div>
+            </div>
+            
+            <div class="border-t border-gray-200 mt-4 pt-4 text-lg font-bold flex justify-between items-center">
+                <span data-lang-key="your_orders_total_cost"></span>
+                <span id="orderDetailsTotalCost" class="text-indigo-600">₹0.00</span>
+            </div>
+            
+            <div class="flex justify-end mt-6">
+                <button id="closeOrderDetailsBtn" class="btn btn-primary" data-lang-key="modal_success_close"></button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // SCRIPT URL: Replace this with your Google Apps Script Web App URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1qLVD4skfe94QtAnrnmevqydsOelQtF8NuUUGTXEJJDrCKRnouj4lY-229BF-WxAsoQ/exec';
+
+        // --- Caching DOM elements for efficiency ---
+        const loginSection = document.getElementById('loginSection');
+        const demandFormSection = document.getElementById('demandFormSection');
+        const advanceDemandSection = document.getElementById('advanceDemandSection');
+        const yourOrdersSection = document.getElementById('yourOrdersSection');
+        const contactSection = document.getElementById('contactSection');
+        const helpSection = document.getElementById('helpSection');
+        const mainContent = document.getElementById('mainContent');
+
+        const loginForm = document.getElementById('loginForm');
+        const todayDemandForm = document.getElementById('todayDemandForm');
+        const advancedDemandForm = document.getElementById('advancedDemandForm');
+        const productFormContainer = document.getElementById('productFormContainer');
+        const advanceProductFormContainer = document.getElementById('advanceProductFormContainer');
+        const advancedDemandDateInput = document.getElementById('advancedDemandDate');
+        const todayDemandSubmitBtn = document.getElementById('todayDemandSubmitBtn');
+        const advancedDemandSubmitBtn = document.getElementById('advancedDemandSubmitBtn');
+
+        const demandFormTimeMessage = document.getElementById('demandFormTimeMessage');
+        const advanceDemandTimeMessage = document.getElementById('advanceDemandTimeMessage');
+
+
+        const loadingModal = document.getElementById('loadingModal');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const successModal = document.getElementById('successModal');
+        const errorModal = document.getElementById('errorModal');
+        const orderDetailsModal = document.getElementById('orderDetailsModal');
+        const successDeliveryDateDiv = document.getElementById('successDeliveryDate');
+        const successDeliveryDateValueSpan = document.getElementById('successDeliveryDateValue');
+
+        const distributorNameDisplay = document.getElementById('distributorNameDisplay');
+        const distributorRouteDisplay = document.getElementById('distributorRouteDisplay');
+        const distributorInfo = document.getElementById('distributorInfo');
+        const brandName = document.getElementById('brandName');
+
+        // Nav elements
+        const authenticatedNav = document.getElementById('authenticatedNav');
+        const mobileAuthenticatedNav = document.getElementById('mobileAuthenticatedNav');
+
+        const todayDemandButton = document.getElementById('todayDemandButton');
+        const yourOrdersButton = document.getElementById('yourOrdersButton');
+        const mobileTodayDemandButton = document.getElementById('mobileTodayDemandButton');
+        const mobileYourOrdersButton = document.getElementById('mobileYourOrdersButton');
+
+        const logoutButton = document.getElementById('logoutButton');
+        const advanceDemandButton = document.getElementById('advanceDemandButton');
+        const contactUsButton = document.getElementById('contactUsButton');
+        const helpButton = document.getElementById('helpButton');
+        const languageToggle = document.getElementById('languageToggle');
+
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileLogoutButton = document.getElementById('mobileLogoutButton');
+        const mobileAdvanceDemandButton = document.getElementById('mobileAdvanceDemandButton');
+        const mobileContactUsButton = document.getElementById('mobileContactUsButton');
+        const mobileHelpButton = document.getElementById('mobileHelpButton');
+        const mobileLanguageToggle = document.getElementById('mobileLanguageToggle');
+        
+        const closeContactButton = document.getElementById('closeContactButton');
+        const closeHelpButton = document.getElementById('closeHelpButton');
+        const closeOrderDetailsBtn = document.getElementById('closeOrderDetailsBtn');
+
+        const yourOrdersContainer = document.getElementById('yourOrdersContainer');
+        const noOrdersMessage = document.getElementById('noOrdersMessage');
+
+        // NEW: Search input element
+        const orderSearchInput = document.getElementById('orderSearch');
+
+        // Global variables for state management
+        let distributorName = '';
+        let distributorRoute = '';
+        let currentProducts = [];
+        let currentLanguage = 'en';
+        let allSubmittedDemands = []; // Global to store all demands after fetching
+        let portalTimings = {}; // NEW: Global to store portal timing data
+
+        // --- Translations object ---
+        const translations = {
+            en: {
+                brand_name: 'Demand Entry',
+                nav_today_demand: 'Today\'s Demand',
+                nav_advance_demand: 'Advance Demand',
+                nav_your_orders: 'Your Orders',
+                nav_logout: 'Logout',
+                nav_contact: 'Contact Us',
+                nav_help: 'Help',
+                nav_language: 'हिन्दी',
+                login_header: 'Distributor Login',
+                login_username_label: 'Username',
+                login_password_label: 'Mobile Number',
+                login_button: 'Login',
+                login_error: 'Invalid username or mobile number.',
+                demand_header: 'Today\'s Demand Entry',
+                demand_product_label: 'Product',
+                demand_quantity_label: 'Quantity',
+                total_cost_label: 'Estimated Total Cost',
+                demand_submit_button: 'Submit Demand',
+                advance_demand_header: 'Advanced Demand Entry',
+                advance_demand_date_label: 'Select Delivery Date',
+                advance_demand_submit_button: 'Submit Advance Demand',
+                your_orders_header: 'Your Orders',
+                your_orders_delivery_date: 'Delivery Date',
+                your_orders_timestamp: 'Submitted On',
+                your_orders_total_cost: 'Total Cost',
+                your_orders_demand_type: 'Type',
+                your_orders_today: 'Today',
+                your_orders_advance: 'Advance',
+                your_orders_view_details: 'View Details',
+                no_orders_found: 'No active demands found.',
+                contact_header: 'Contact Us',
+                contact_text: 'For any issues or support, please contact us:',
+                contact_phone_label: 'Phone',
+                contact_email_label: 'Email',
+                contact_back: 'Back to Demand Entry',
+                help_header: 'Help & Instructions',
+                help_login_title: '1. Login',
+                help_login_text: 'Use your provided Username and Mobile Number to log in. The mobile number acts as your password.',
+                help_demand_title: '2. Entering Demand',
+                help_demand_text: 'Enter the quantity for each product you need. The total cost is automatically calculated. Click "Submit" to send your demand.',
+                help_back: 'Back to Demand Entry',
+                submission_window_closed: 'Submission window is closed.', // Updated message
+                modal_loading_text: 'Loading...',
+                modal_confirm_title: 'Confirm Your Demand',
+                modal_confirm_distributor: 'Distributor',
+                modal_confirm_demand_items: 'Demand Items',
+                modal_confirm_total_cost: 'Total Cost',
+                modal_confirm_cancel: 'Cancel',
+                modal_confirm_submit: 'Confirm',
+                modal_success_title: 'Demand Submitted Successfully!',
+                modal_success_text: 'Your demand has been recorded. You can now close this window.',
+                modal_success_close: 'Close',
+                modal_error_title: 'Submission Failed',
+                modal_error_close: 'Close',
+                modal_demand_submitted_today: 'You have already submitted today\'s demand.',
+                modal_demand_submitted_advance_today: 'You have already submitted an advance demand for today.',
+                modal_adv_demand_limit: 'You can only submit up to two advance demands for future dates.',
+                modal_adv_demand_past_date: 'The selected date cannot be in the past.',
+                modal_success_delivery_date: 'Delivery Date',
+                modal_order_details_title: 'Order Details'
+            },
+            hi: {
+                brand_name: 'डिमांड एंट्री',
+                nav_today_demand: 'आज की डिमांड',
+                nav_advance_demand: 'एडवांस डिमांड',
+                nav_your_orders: 'आपके आर्डर',
+                nav_logout: 'लॉगआउट',
+                nav_contact: 'संपर्क करें',
+                nav_help: 'सहायता',
+                nav_language: 'English',
+                login_header: 'डिस्ट्रीब्यूटर लॉगिन',
+                login_username_label: 'यूजरनेम',
+                login_password_label: 'मोबाइल नंबर',
+                login_button: 'लॉगिन करें',
+                login_error: 'गलत यूजरनेम या मोबाइल नंबर।',
+                demand_header: 'आज की डिमांड एंट्री',
+                demand_product_label: 'उत्पाद',
+                demand_quantity_label: 'मात्रा',
+                total_cost_label: 'अनुमानित कुल लागत',
+                demand_submit_button: 'डिमांड सबमिट करें',
+                advance_demand_header: 'एडवांस डिमांड एंट्री',
+                advance_demand_date_label: 'डिलीवरी की तारीख चुनें',
+                advance_demand_submit_button: 'एडवांस डिमांड सबमिट करें',
+                your_orders_header: 'आपके आर्डर',
+                your_orders_delivery_date: 'डिलीवरी की तारीख',
+                your_orders_timestamp: 'सबमिट किया गया',
+                your_orders_total_cost: 'कुल लागत',
+                your_orders_demand_type: 'प्रकार',
+                your_orders_today: 'आज',
+                your_orders_advance: 'एडवांस',
+                your_orders_view_details: 'विवरण देखें',
+                no_orders_found: 'कोई सक्रिय डिमांड नहीं मिली।',
+                contact_header: 'संपर्क करें',
+                contact_text: 'किसी भी समस्या या सहायता के लिए, कृपया हमसे संपर्क करें:',
+                contact_phone_label: 'फ़ोन',
+                contact_email_label: 'ईमेल',
+                contact_back: 'डिमांड एंट्री पर वापस',
+                help_header: 'सहायता और निर्देश',
+                help_login_title: '1. लॉगिन',
+                help_login_text: 'लॉगिन करने के लिए अपने दिए गए यूजरनेम और मोबाइल नंबर का उपयोग करें। मोबाइल नंबर आपके पासवर्ड के रूप में काम करता है।',
+                help_demand_title: '2. डिमांड दर्ज करना',
+                help_demand_text: 'आपको आवश्यक प्रत्येक उत्पाद की मात्रा दर्ज करें। कुल लागत स्वचालित रूप से गणना की जाती है। अपनी डिमांड भेजने के लिए "सबमिट करें" पर क्लिक करें।',
+                help_back: 'डिमांड एंट्री पर वापस',
+                submission_window_closed: 'डिमांड सबमिट करने का समय समाप्त हो गया है।', // Updated message
+                modal_loading_text: 'लोड हो रहा है...',
+                modal_confirm_title: 'अपनी डिमांड की पुष्टि करें',
+                modal_confirm_distributor: 'डिस्ट्रीब्यूटर',
+                modal_confirm_demand_items: 'डिमांड आइटम',
+                modal_confirm_total_cost: 'कुल लागत',
+                modal_confirm_cancel: 'रद्द करें',
+                modal_confirm_submit: 'पुष्टि करें',
+                modal_success_title: 'डिमांड सफलतापूर्वक सबमिट हुई!',
+                modal_success_text: 'आपकी डिमांड दर्ज कर ली गई है। आप अब इस विंडो को बंद कर सकते हैं।',
+                modal_success_close: 'बंद करें',
+                modal_error_title: 'सबमिशन विफल हुआ',
+                modal_error_close: 'बंद करें',
+                modal_demand_submitted_today: 'आप आज की डिमांड पहले ही सबमिट कर चुके हैं।',
+                modal_demand_submitted_advance_today: 'आप आज के लिए एक एडवांस डिमांड पहले ही सबमिट कर चुके हैं।',
+                modal_adv_demand_limit: 'आप भविष्य की तारीखों के लिए केवल दो एडवांस डिमांड सबमिट कर सकते हैं।',
+                modal_adv_demand_past_date: 'चुनी गई तिथि पिछली तारीख नहीं हो सकती।',
+                modal_success_delivery_date: 'डिलीवरी की तारीख',
+                modal_order_details_title: 'ऑर्डर का विवरण'
+            }
+        };
+
+        // --- Core Functions ---
+        function updateUI() {
+            // Update all text content based on the current language
+            document.querySelectorAll('[data-lang-key]').forEach(element => {
+                const key = element.getAttribute('data-lang-key');
+                const text = translations[currentLanguage][key];
+                if (text) {
+                    element.textContent = text;
+                }
+            });
+
+            // Update brand name and distributor info
+            brandName.textContent = translations[currentLanguage].brand_name;
+            if (distributorName) {
+                distributorNameDisplay.textContent = distributorName;
+                distributorRouteDisplay.textContent = distributorRoute;
+            }
+
+            // Update the date display for today's form
+            const currentDate = new Date().toLocaleDateString(currentLanguage, {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            document.getElementById('currentDateDisplay').textContent = currentDate;
+        }
+
+        function showOnlySection(sectionToShow) {
+            const sections = [loginSection, demandFormSection, advanceDemandSection, yourOrdersSection, contactSection, helpSection];
+            sections.forEach(section => {
+                section.classList.add('hidden');
+            });
+            sectionToShow.classList.remove('hidden');
+            mobileMenu.classList.add('hidden'); // Hide mobile menu on navigation
+        }
+
+        function showModal(modalId) {
+            const modals = [loadingModal, confirmationModal, successModal, errorModal, orderDetailsModal];
+            modals.forEach(modal => {
+                modal.classList.add('hidden');
+            });
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function hideAllModals() {
+            const modals = [loadingModal, confirmationModal, successModal, errorModal, orderDetailsModal];
+            modals.forEach(modal => {
+                modal.classList.add('hidden');
+            });
+        }
+        
+        // Function to render the product form dynamically
+        function renderProductDemandForm(container, products) {
+            container.innerHTML = ''; // Clear previous content
+            
+            const table = document.createElement('table');
+            table.className = 'w-full text-sm text-left text-gray-500';
+            table.innerHTML = `
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th scope="col" class="py-3 px-6"><span data-lang-key="demand_product_label"></span></th>
+                        <th scope="col" class="py-3 px-6"><span data-lang-key="demand_quantity_label"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="${container.id.includes('advance') ? 'advanceProductList' : 'productList'}">
+                </tbody>
+            `;
+            container.appendChild(table);
+
+            const tbody = table.querySelector('tbody');
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b';
+                row.innerHTML = `
+                    <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">
+                        ${product.name} - ${product.pack}
+                    </th>
+                    <td class="py-4 px-6">
+                        <input type="number" name="${product.name} - ${product.pack}" class="quantity-input form-input text-sm text-center" min="0" value="0">
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateUI(); // Apply translations to newly created elements
+        }
+        
+        // NEW: Function to render the orders in a table format
+        function renderOrdersTable(demands) {
+            yourOrdersContainer.innerHTML = ''; // Clear previous content
+
+            if (demands.length === 0) {
+                noOrdersMessage.classList.remove('hidden');
+                return;
+            }
+
+            noOrdersMessage.classList.add('hidden');
+
+            const table = document.createElement('table');
+            table.className = 'w-full text-sm text-left text-gray-500 rounded-lg overflow-hidden shadow-md';
+            table.innerHTML = `
+                <thead class="text-xs text-white uppercase bg-indigo-600">
+                    <tr>
+                        <th scope="col" class="py-3 px-4"><span data-lang-key="your_orders_delivery_date"></span></th>
+                        <th scope="col" class="py-3 px-4"><span data-lang-key="your_orders_timestamp"></span></th>
+                        <th scope="col" class="py-3 px-4"><span data-lang-key="your_orders_total_cost"></span></th>
+                        <th scope="col" class="py-3 px-4"><span data-lang-key="your_orders_demand_type"></span></th>
+                        <th scope="col" class="py-3 px-4 text-right"></th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                </tbody>
+            `;
+            yourOrdersContainer.appendChild(table);
+            const tbody = document.getElementById('ordersTableBody');
+
+            demands.forEach(demand => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b hover:bg-gray-50';
+
+                // Format dates
+                const deliveryDate = new Date(demand['Demand Date']).toLocaleDateString(currentLanguage);
+                const submittedOn = new Date(demand['Timestamp']).toLocaleString(currentLanguage);
+                const totalCost = calculateDemandTotalCost(demand);
+                const demandType = demand['Demand Type'] === 'Today' ? translations[currentLanguage].your_orders_today : translations[currentLanguage].your_orders_advance;
+
+                row.innerHTML = `
+                    <td class="py-4 px-4 font-medium text-gray-900">${deliveryDate}</td>
+                    <td class="py-4 px-4">${submittedOn}</td>
+                    <td class="py-4 px-4">₹${totalCost.toFixed(2)}</td>
+                    <td class="py-4 px-4">${demandType}</td>
+                    <td class="py-4 px-4 text-right">
+                        <button class="view-details-btn text-indigo-600 hover:text-indigo-900 font-semibold" data-demand-timestamp="${demand.Timestamp}">
+                            <span data-lang-key="your_orders_view_details"></span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            updateUI(); // Apply translations to newly created table elements
+            
+            // Attach event listeners for view details buttons
+            tbody.querySelectorAll('.view-details-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // Use `closest` to handle clicks on the span inside the button
+                    const timestamp = e.target.closest('button').dataset.demandTimestamp;
+                    const selectedDemand = allSubmittedDemands.find(d => d.Timestamp === timestamp);
+                    if (selectedDemand) {
+                        showOrderDetailsModal(selectedDemand);
+                    }
+                });
+            });
+        }
+        
+        // Helper function to calculate total cost from a demand object
+        function calculateDemandTotalCost(demand) {
+            let totalCost = 0;
+            for (const key in demand) {
+                if (key.includes(' - ') && demand[key] > 0) {
+                    const productName = key;
+                    const quantity = demand[key];
+                    const product = currentProducts.find(p => `${p.name} - ${p.pack}` === productName);
+                    const price = product ? product.price : 0;
+                    totalCost += quantity * price;
+                }
+            }
+            return totalCost;
+        }
+
+        // --- Fetch and Submit Data Functions ---
+        async function fetchProducts() {
+            try {
+                showModal('loadingModal');
+                const response = await fetch(`${SCRIPT_URL}?action=get_products`);
+                const data = await response.json();
+                hideAllModals();
+
+                if (data.result === 'success') {
+                    currentProducts = data.products;
+                    // Render product forms for both today's and advanced demand
+                    renderProductDemandForm(productFormContainer, currentProducts);
+                    renderProductDemandForm(advanceProductFormContainer, currentProducts);
+                    
+                    // Attach event listeners for calculating total cost
+                    attachQuantityInputListeners(todayDemandForm, document.getElementById('estimatedTotalCost'));
+                    attachQuantityInputListeners(advancedDemandForm, document.getElementById('advanceEstimatedTotalCost'));
+
+                    showOnlySection(demandFormSection);
+                } else {
+                    showErrorModal(data.error);
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                showErrorModal('Network error. Please check your connection.');
+            }
+        }
+        
+        // NEW: Function to fetch portal timings
+        async function fetchPortalTimings() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=get_portal_timings`);
+                const data = await response.json();
+                if (data.result === 'success') {
+                    portalTimings = data.timings;
+                    // Once timings are fetched, update the form availability
+                    updateFormAvailability();
+                } else {
+                    console.error('Error fetching portal timings:', data.error);
+                }
+            } catch (error) {
+                console.error('Network error fetching portal timings:', error);
+            }
+        }
+
+        async function fetchYourOrders() {
+            yourOrdersContainer.innerHTML = ''; // Clear previous content
+            noOrdersMessage.classList.add('hidden');
+            showModal('loadingModal');
+
+            const formData = new FormData();
+            formData.append('action', 'get_your_demands');
+            formData.append('distributorName', distributorName);
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                hideAllModals();
+
+                if (data.result === 'success' && data.demands && data.demands.length > 0) {
+                    allSubmittedDemands = data.demands; // Store all demands
+                    filterAndRenderOrders(''); // Render all orders initially
+                } else {
+                    noOrdersMessage.classList.remove('hidden');
+                    allSubmittedDemands = []; // Clear old data if no demands are found
+                }
+
+                showOnlySection(yourOrdersSection);
+
+            } catch (error) {
+                console.error('Error fetching your orders:', error);
+                showErrorModal('Could not fetch orders. Please try again.');
+                showOnlySection(yourOrdersSection);
+            }
+        }
+
+        // NEW: Function to filter and render orders based on a search term
+        function filterAndRenderOrders(searchTerm) {
+            const lowerCaseSearch = searchTerm.toLowerCase();
+
+            const filteredDemands = allSubmittedDemands.filter(demand => {
+                // Search by Delivery Date (in a readable format)
+                const deliveryDate = new Date(demand['Demand Date']).toLocaleDateString('en-US').toLowerCase();
+                if (deliveryDate.includes(lowerCaseSearch)) {
+                    return true;
+                }
+
+                // Search by Product Name
+                for (const key in demand) {
+                    if (key.includes(' - ') && key.toLowerCase().includes(lowerCaseSearch)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            renderOrdersTable(filteredDemands);
+        }
+
+        function showConfirmationModal(formData) {
+            showModal('confirmationModal');
+            const confirmationDistributorSpan = document.getElementById('confirmationDistributor');
+            const confirmationItemsList = document.getElementById('confirmationItemsList');
+            const confirmationTotalCostSpan = document.getElementById('confirmationTotalCost');
+            const advancedDemandDateDisplayDiv = document.getElementById('advancedDemandDateDisplay');
+            const confirmationDeliveryDateSpan = document.getElementById('confirmationDeliveryDate');
+            const confirmButton = document.getElementById('confirmSubmissionBtn');
+            confirmationItemsList.innerHTML = '';
+            const distributorName = formData.get('Distributor Name');
+            let totalCost = 0;
+            const items = [];
+            formData.forEach((value, key) => {
+                if (key.includes(' - ')) {
+                    const quantity = parseInt(value, 10);
+                    if (quantity > 0) {
+                        const productName = key;
+                        const product = currentProducts.find(p => `${p.name} - ${p.pack}` === productName);
+                        const price = product ? product.price : 0;
+                        const itemTotal = quantity * price;
+                        totalCost += itemTotal;
+                        items.push({ name: productName, quantity: quantity, total: itemTotal });
+                    }
+                }
+            });
+            confirmationDistributorSpan.textContent = distributorName;
+
+            // Use grid layout for confirmation modal items
+            const headerRow = document.createElement('div');
+            headerRow.className = 'demand-items-grid font-bold text-gray-600 mb-2';
+            headerRow.innerHTML = `
+                <span>${translations[currentLanguage].demand_product_label}</span>
+                <span class="text-center">${translations[currentLanguage].demand_quantity_label}</span>
+                <span class="text-right">${translations[currentLanguage].your_orders_total_cost}</span>
+            `;
+            confirmationItemsList.appendChild(headerRow);
+
+            items.forEach(item => {
+                const itemRow = document.createElement('div');
+                itemRow.className = 'demand-items-grid text-gray-700';
+                itemRow.innerHTML = `
+                    <span>${item.name}</span>
+                    <span class="text-center">${item.quantity}</span>
+                    <span class="text-right">₹${item.total.toFixed(2)}</span>
+                `;
+                confirmationItemsList.appendChild(itemRow);
+            });
+
+            confirmationTotalCostSpan.textContent = `₹${totalCost.toFixed(2)}`;
+            
+            const demandType = formData.get('demandType');
+            const deliveryDate = formData.get('Demand Date');
+
+            confirmButton.onclick = function() {
+                submitDemand(formData, demandType, deliveryDate);
+            };
+
+            if (demandType === 'Advance') {
+                if (deliveryDate) {
+                    const formattedDate = new Date(deliveryDate).toLocaleDateString(currentLanguage, {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                    confirmationDeliveryDateSpan.textContent = formattedDate;
+                    advancedDemandDateDisplayDiv.classList.remove('hidden');
+                } else {
+                    advancedDemandDateDisplayDiv.classList.add('hidden');
+                }
+            } else {
+                advancedDemandDateDisplayDiv.classList.add('hidden');
+            }
+        }
+
+        // NEW: Function to show the detailed order modal
+        function showOrderDetailsModal(demand) {
+            showModal('orderDetailsModal');
+            document.getElementById('orderDetailsDeliveryDate').textContent = new Date(demand['Demand Date']).toLocaleDateString(currentLanguage, {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            document.getElementById('orderDetailsSubmittedOn').textContent = new Date(demand['Timestamp']).toLocaleString(currentLanguage);
+            document.getElementById('orderDetailsDemandType').textContent = demand['Demand Type'] === 'Today' ? translations[currentLanguage].your_orders_today : translations[currentLanguage].your_orders_advance;
+            
+            const detailsList = document.getElementById('orderDetailsItemsList');
+            detailsList.innerHTML = '';
+            
+            const totalCost = calculateDemandTotalCost(demand);
+            
+            for (const key in demand) {
+                if (key.includes(' - ') && demand[key] > 0) {
+                    const quantity = demand[key];
+                    const productName = key;
+                    const product = currentProducts.find(p => `${p.name} - ${p.pack}` === productName);
+                    const price = product ? product.price : 0;
+                    const itemTotal = quantity * price;
+                    
+                    const itemRow = document.createElement('div');
+                    itemRow.className = 'demand-items-grid text-gray-700';
+                    itemRow.innerHTML = `
+                        <span>${productName}</span>
+                        <span class="text-center">${quantity}</span>
+                        <span class="text-right">₹${itemTotal.toFixed(2)}</span>
+                    `;
+                    detailsList.appendChild(itemRow);
+                }
+            }
+            
+            document.getElementById('orderDetailsTotalCost').textContent = `₹${totalCost.toFixed(2)}`;
+            updateUI();
+        }
+
+        // Function to show the success modal with a delivery date if provided
+        function showSuccessModal(deliveryDate = null) {
+            hideAllModals();
+            showModal('successModal');
+            if (deliveryDate) {
+                const formattedDate = new Date(deliveryDate).toLocaleDateString(currentLanguage, {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+                successDeliveryDateValueSpan.textContent = formattedDate;
+                successDeliveryDateDiv.classList.remove('hidden');
+            } else {
+                successDeliveryDateDiv.classList.add('hidden');
+            }
+        }
+
+        // Function to submit the demand data
+        async function submitDemand(formData, demandType, deliveryDate) {
+            try {
+                // Display loading modal
+                showModal('loadingModal');
+                
+                // Submit the form data
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                // IMPORTANT: Log the full response to the console for debugging
+                console.log('API response:', data);
+
+                // Check for a successful response from the Apps Script
+                if (data.result === 'success') {
+                    // Log to confirm this block is executed
+                    console.log('Submission successful, showing success modal.');
+                    // Show success modal with correct delivery date
+                    showSuccessModal(demandType === 'Advance' ? deliveryDate : null);
+                    
+                    // After a short delay, fetch and display the updated orders
+                    setTimeout(() => {
+                        fetchYourOrders();
+                    }, 1000); // 1-second delay
+                } else {
+                    // If the Apps Script returns an error, show the error modal
+                    showErrorModal(data.error);
+                }
+            } catch (error) {
+                console.error('Error submitting demand:', error);
+                showErrorModal('Network error. Please check your connection.');
+            }
+        }
+
+        // --- Helper Functions ---
+
+        // Checks if the current time is within the submission window from the Portal Timing sheet
+        function isSubmissionWindowOpen(demandType) {
+            const timing = portalTimings[demandType];
+            if (!timing) {
+                console.warn(`No timing data found for demand type: ${demandType}`);
+                return false;
+            }
+
+            const now = new Date();
+            const nowTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes for easy comparison
+
+            // Parse start and end times (e.g., "10:00 AM" to 600, "06:00 PM" to 1080)
+            const parseTime = (timeStr) => {
+                const [time, period] = timeStr.split(' ');
+                let [hours, minutes] = time.split(':').map(Number);
+                if (period === 'PM' && hours < 12) hours += 12;
+                if (period === 'AM' && hours === 12) hours = 0; // Midnight case
+                return hours * 60 + minutes;
+            };
+
+            const startTime = parseTime(timing.startTime);
+            const endTime = parseTime(timing.endTime);
+            
+            return nowTime >= startTime && nowTime < endTime;
+        }
+
+        function updateFormAvailability() {
+            // Check availability for Today's Demand
+            const isTodayOpen = isSubmissionWindowOpen('Today');
+            todayDemandSubmitBtn.disabled = !isTodayOpen;
+            if (isTodayOpen) {
+                demandFormTimeMessage.classList.add('hidden');
+            } else {
+                demandFormTimeMessage.classList.remove('hidden');
+            }
+
+            // Check availability for Advance Demand
+            const isAdvanceOpen = isSubmissionWindowOpen('Advance');
+            advancedDemandSubmitBtn.disabled = !isAdvanceOpen;
+            if (isAdvanceOpen) {
+                advanceDemandTimeMessage.classList.add('hidden');
+            } else {
+                advanceDemandTimeMessage.classList.remove('hidden');
+            }
+        }
+
+        function attachQuantityInputListeners(form, totalCostElement) {
+            form.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('input', () => {
+                    updateTotalCost(form, totalCostElement);
+                });
+            });
+        }
+
+        function updateTotalCost(form, totalCostElement) {
+            let totalCost = 0;
+            const formData = new FormData(form);
+            formData.forEach((value, key) => {
+                if (key.includes(' - ')) {
+                    const quantity = parseInt(value, 10) || 0;
+                    const product = currentProducts.find(p => `${p.name} - ${p.pack}` === key);
+                    const price = product ? product.price : 0;
+                    totalCost += quantity * price;
+                }
+            });
+            totalCostElement.textContent = `₹${totalCost.toFixed(2)}`;
+        }
+
+        function showErrorModal(message) {
+            document.getElementById('errorModalMessage').textContent = message;
+            showModal('errorModal');
+        }
+
+        function handleLogoutAndRedirect() {
+            distributorName = '';
+            distributorRoute = '';
+            distributorInfo.classList.add('hidden');
+            authenticatedNav.classList.add('hidden'); // Hide desktop nav
+            mobileAuthenticatedNav.classList.add('hidden'); // Hide mobile nav
+            showOnlySection(loginSection);
+            // Optionally, clear forms or reset state here
+        }
+
+        // Sets the minimum date for the advance demand date picker to today's date
+        function setMinDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const todayString = `${year}-${month}-${day}`;
+            advancedDemandDateInput.min = todayString;
+        }
+
+        // --- Event Listeners ---
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            showModal('loadingModal');
+            const username = document.getElementById('username').value;
+            const mobileNumber = document.getElementById('password').value;
+            
+            const formData = new FormData();
+            formData.append('action', 'login');
+            formData.append('username', username);
+            formData.append('password', mobileNumber);
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                hideAllModals();
+
+                if (data.result === 'success') {
+                    distributorName = data.distributorName;
+                    distributorRoute = data.route;
+                    distributorInfo.classList.remove('hidden');
+                    authenticatedNav.classList.remove('hidden'); // Show desktop nav
+                    mobileAuthenticatedNav.classList.remove('hidden'); // Show mobile nav
+                    
+                    await fetchPortalTimings(); // NEW: Fetch portal timings first
+                    await fetchProducts(); // Then fetch products and show the demand form
+                } else {
+                    document.getElementById('loginError').textContent = data.error;
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginError').textContent = 'Network error. Please try again.';
+                document.getElementById('loginError').classList.remove('hidden');
+                hideAllModals();
+            }
+        });
+
+        // Event listener for the Today Demand form submission
+        todayDemandForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            if (!isSubmissionWindowOpen('Today')) {
+                 showErrorModal(translations[currentLanguage].submission_window_closed);
+                 return;
+            }
+
+            // Re-fetch all demands to get the latest state before checking
+            await fetchYourOrders();
+
+            const today = new Date();
+            const todayDemandExists = allSubmittedDemands.some(demand => {
+                const demandDate = new Date(demand['Demand Date']);
+                return demand['Demand Type'] === 'Today' && demandDate.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0);
+            });
+
+            if (todayDemandExists) {
+                showErrorModal(translations[currentLanguage].modal_demand_submitted_today);
+                return;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Append the distributor's name and route
+            formData.append('Distributor Name', distributorName);
+            formData.append('Route', distributorRoute);
+            
+            // Add the action parameter to the formData
+            formData.append('action', 'submit_demand');
+
+            // Show confirmation modal
+            showConfirmationModal(formData);
+        });
+        
+        // Event listener for the Advanced Demand form submission
+        advancedDemandForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            if (!isSubmissionWindowOpen('Advance')) {
+                 showErrorModal(translations[currentLanguage].submission_window_closed);
+                 return;
+            }
+
+            const deliveryDate = document.getElementById('advancedDemandDate').value;
+            if (!deliveryDate) {
+                showErrorModal('Please select a delivery date.');
+                return;
+            }
+
+            const today = new Date();
+            const selectedDate = new Date(deliveryDate);
+            
+            // Check if the selected date is in the past
+            if (selectedDate.setHours(0,0,0,0) < today.setHours(0,0,0,0)) {
+                showErrorModal(translations[currentLanguage].modal_adv_demand_past_date);
+                return;
+            }
+
+            // Fetch all demands to check for limits and conflicts
+            await fetchYourOrders();
+            
+            if (selectedDate.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                // Logic for an Advance Demand for today
+                const advanceDemandTodayExists = allSubmittedDemands.some(demand => {
+                    const demandDate = new Date(demand['Demand Date']);
+                    return demand['Demand Type'] === 'Advance' && demandDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
+                });
+
+                if (advanceDemandTodayExists) {
+                    showErrorModal(translations[currentLanguage].modal_demand_submitted_advance_today);
+                    return;
+                }
+            } else {
+                 // Logic for a future Advance Demand
+                const futureAdvanceDemands = allSubmittedDemands.filter(demand => {
+                    const demandDate = new Date(demand['Demand Date']);
+                    return demand['Demand Type'] === 'Advance' && demandDate.setHours(0,0,0,0) > today.setHours(0,0,0,0);
+                });
+
+                if (futureAdvanceDemands.length >= 2) {
+                    showErrorModal(translations[currentLanguage].modal_adv_demand_limit);
+                    return;
+                }
+            }
+            
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // Append the distributor's name and route
+            formData.append('Distributor Name', distributorName);
+            formData.append('Route', distributorRoute);
+            
+            // Add the action parameter to the formData
+            formData.append('action', 'submit_demand');
+            
+            showConfirmationModal(formData);
+        });
+
+        // Modal button listeners
+        document.getElementById('closeSuccessModalBtn').addEventListener('click', hideAllModals);
+        document.getElementById('closeErrorModalBtn').addEventListener('click', hideAllModals);
+        document.getElementById('cancelSubmissionBtn').addEventListener('click', hideAllModals);
+        // NEW: Close button for order details modal
+        closeOrderDetailsBtn.addEventListener('click', hideAllModals);
+
+
+        // --- Navbar and UI Event Listeners ---
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        todayDemandButton.addEventListener('click', () => showOnlySection(demandFormSection));
+        mobileTodayDemandButton.addEventListener('click', () => showOnlySection(demandFormSection));
+        yourOrdersButton.addEventListener('click', () => {
+            fetchYourOrders(); // Fetch all orders
+        });
+        mobileYourOrdersButton.addEventListener('click', () => {
+            fetchYourOrders();
+        });
+        
+        logoutButton.addEventListener('click', handleLogoutAndRedirect);
+        advanceDemandButton.addEventListener('click', () => showOnlySection(advanceDemandSection));
+        contactUsButton.addEventListener('click', () => showOnlySection(contactSection));
+        helpButton.addEventListener('click', () => showOnlySection(helpSection));
+        languageToggle.addEventListener('click', () => {
+            currentLanguage = currentLanguage === 'en' ? 'hi' : 'en';
+            updateUI();
+        });
+
+        // Mobile menu listeners
+        mobileLogoutButton.addEventListener('click', handleLogoutAndRedirect);
+        mobileAdvanceDemandButton.addEventListener('click', () => showOnlySection(advanceDemandSection));
+        mobileContactUsButton.addEventListener('click', () => showOnlySection(contactSection));
+        mobileHelpButton.addEventListener('click', () => showOnlySection(helpSection));
+        mobileLanguageToggle.addEventListener('click', () => {
+            currentLanguage = currentLanguage === 'en' ? 'hi' : 'en';
+            updateUI();
+        });
+
+        closeContactButton.addEventListener('click', () => {
+            showOnlySection(demandFormSection);
+        });
+
+        closeHelpButton.addEventListener('click', () => {
+            showOnlySection(demandFormSection);
+        });
+
+        // NEW: Search input event listener
+        orderSearchInput.addEventListener('input', (event) => {
+            const searchTerm = event.target.value;
+            filterAndRenderOrders(searchTerm);
+        });
+
+        // Initial UI setup
+        setMinDate();
+        updateUI();
+        showOnlySection(loginSection); // Start with the login section
+        setInterval(updateFormAvailability, 60000); // Check every minute
+        updateFormAvailability(); // Initial check on load
+    </script>
+</body>
+</html>
